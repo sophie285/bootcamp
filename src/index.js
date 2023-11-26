@@ -6,13 +6,14 @@ import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 
 import { Provider } from 'react-redux';
-import firebase from 'firebase/app';
+// import firebase from 'firebase/compat/app';
 import { createStore, combineReducers } from 'redux';
 import {
   ReactReduxFirebaseProvider,
   firebaseReducer,
 } from 'react-redux-firebase';
-import { composeWithDevTools } from 'redux-devtools-extension';
+import { initializeApp } from 'firebase/app';
+// import { composeWithDevTools } from 'redux-devtools-extension';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAetyljyYei6ID0tAv7ycmZNFaRp3l9bRw",
@@ -24,7 +25,7 @@ const firebaseConfig = {
     appId: "1:227008949802:web:4bcc888068f94bc01e1d53"
   };
 
-firebase.initializeApp(firebaseConfig);
+  const firebaseApp = initializeApp(firebaseConfig);
 
 // Add firebase to reducers
 const rootReducer = combineReducers({
@@ -32,7 +33,7 @@ const rootReducer = combineReducers({
   });
   
   // Create store with reducers and initial state
-  const store = createStore(rootReducer, composeWithDevTools());
+  const store = createStore(rootReducer);
   
   // react-redux-firebase config
   const rrfConfig = {
@@ -40,7 +41,7 @@ const rootReducer = combineReducers({
   };
   
   const rrfProps = {
-    firebase,
+    firebase: firebaseApp,
     config: rrfConfig,
     dispatch: store.dispatch,
   };
