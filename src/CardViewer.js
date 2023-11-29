@@ -1,9 +1,8 @@
 import React from 'react';
 import './CardViewer.css';
 
-import firebase from 'firebase/app'
-import 'firebase/auth'
-import 'firebase/database'
+// import 'firebase/compat/auth'
+// import 'firebase/compat/database'
 
 import {Link, useNavigate, useParams} from 'react-router-dom';
 import {firebaseConnect, isLoaded, isEmpty} from 'react-redux-firebase';

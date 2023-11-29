@@ -45,38 +45,64 @@ class CardEditor extends React.Component {
 
     handleChange = event => this.setState({ [event.target.name]: event.target.value });
 
-    // createDeck = () => {
-    //     const deckId = this.props.firebase.push('/flashcards').key;
-    //     const newDeck = { cards: this.state.cards, name: this.state.name };
-    //     const onComplete = () => {
-    //         console.log('database updated!');
-    //         this.props.navigate(`/viewer/${deckId}`);
-    //     };
-    //     this.props.firebase.update(`/flashcards/${deckId}`, newDeck, onComplete);
-    // }
+    // createDeck = async (deckName, cards) => {
+    //     const db = getDatabase();
+    //     const decksRef = ref(db, 'flashcards');
+      
+    //     const newDeckKey = push(decksRef).key;
 
-    createDeck = async (deckName, cards) => {
+    //     const newDeckData = {
+    //         name: deckName,
+    //         cards: [],
+    //     };
+
+    //     const cardsData = {};
+    //     for (const card of cards) {
+    //         const newCardKey = push(ref(db, `flashcards/${newDeckKey}/cards`)).key;
+    //         cardsData[`flashcards/${newDeckKey}/cards/${newCardKey}`] = card;
+    //     }
+
+    //     const updates = {};
+    //     updates[`flashcards/${newDeckKey}`] = newDeckData;
+    //     Object.assign(updates, cardsData);
+
+    //     updates[`homepage/${newDeckKey}`] = deckName;
+
+    //     await set(ref(db), updates);
+    //   };
+
+    createDeck = () => {
         const db = getDatabase();
         const decksRef = ref(db, 'flashcards');
       
-        // Generate a sanitized key for the new deck
-        const sanitizedDeckName = deckName.replace(/[.#$/[\]]/g, '_');
+        // Generate a new deck key
         const newDeckKey = push(decksRef).key;
       
-        // Use the sanitized key to set the data for the new deck
-        await set(ref(db, `flashcards/${newDeckKey}`), {
-            name: sanitizedDeckName,
-            cards: [],
-        });
-
-        // Add cards to the new deck
-        const cardsRef = ref(db, `flashcards/${newDeckKey}/cards`);
-        for (const card of cards) {
-            const newCardKey = push(cardsRef).key;
-            await set(ref(db, `flashcards/${newDeckKey}/cards/${newCardKey}`), card);
-        }
+        // Create a new deck object
+        const newDeck = {
+          name: this.state.name,
+          cards: this.state.cards,
+        };
       
-        return newDeckKey; // Return the key if needed
+        // Create a new homepage object
+        const newHomepage = {
+          name: this.state.name,
+        };
+      
+        // Use set to add data to the new deck location
+        set(ref(db, `flashcards/${newDeckKey}`), newDeck)
+          .then(() => {
+            // Use set to add data to the new homepage location
+            return set(ref(db, `homepage/${newDeckKey}`), newHomepage);
+          })
+        //   .then(() => {
+        //     // Handle success, e.g., navigate to the viewer
+        //     this.props.history.push(`/viewer/${newDeckKey}`);
+        //   })
+          .catch((error) => {
+            // Handle errors
+            console.error('Error creating deck:', error);
+          });
       };
 
     render() {
