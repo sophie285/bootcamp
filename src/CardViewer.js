@@ -1,105 +1,98 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './CardViewer.css';
+import { Link, useParams } from 'react-router-dom';
+import { isLoaded, isEmpty } from 'react-redux-firebase';
+import { connect } from 'react-redux';
+import { ref, onValue, getDatabase } from 'firebase/database';
 
-// import 'firebase/compat/auth'
-// import 'firebase/compat/database'
+function CardViewer(props) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayFront, setDisplayFront] = useState(true);
+  const [cards, setCards] = useState([]);
+  const [name, setName] = useState('');
+  const [error, setError] = useState(null);
 
-import {Link, useNavigate, useParams} from 'react-router-dom';
-import {firebaseConnect, isLoaded, isEmpty} from 'react-redux-firebase';
-import {connect} from 'react-redux';
-import {compose} from 'redux';
-export const withRouter = (Component) => {
-    const Wrapper = (props) => {
-        const { deckId } = useParams();
-        const history = useNavigate();
-        return <Component deckId={deckId} history={history} {...props} />;
-    };
-    return Wrapper;
-}
+  const { deckId } = useParams();
 
-class CardViewer extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { currentCardIndex: 0, isFront: true };
+  useEffect(() => {
+    const db = getDatabase();
+    const deckRef = ref(db, `/flashcards/${deckId}`);
+
+    onValue(
+      deckRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          console.log("Firebase snapshot:", snapshot.val());
+          const data = snapshot.val();
+          setCards(data.cards || []);
+          setName(data.name || '');
+        } else {
+          setError('Deck not found');
+        }
+      },
+      (error) => {
+        console.error(error);
+        setError(error.message);
+      }
+    );
+  }, [deckId]);
+
+  const handleNextCard = () => {
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setDisplayFront(true);
     }
+  };
 
-    handleNextCard = () => {
-        const { currentCardIndex } = this.state;
-    
-        if (currentCardIndex < this.props.cards.length - 1) {
-          this.setState({ currentCardIndex: currentCardIndex + 1, isFront: true });
-        }
-    };
-    
-    handlePrevCard = () => {
-        const { currentCardIndex } = this.state;
-    
-        if (currentCardIndex > 0) {
-          this.setState({ currentCardIndex: currentCardIndex - 1, isFront: true });
-        }
-    };
-
-    handleCardClick = () => {
-        const { currentCardIndex } = this.state;
-        const flashcard = this.props.cards[currentCardIndex];
-    
-        if (flashcard) {
-            this.setState((prevState) => ({ isFront: !prevState.isFront }));
-        }
-    };
-
-    render() {
-        if (!isLoaded(this.props.cards)) {
-            return <div>Loading...</div>;
-        }
-
-        if (isEmpty(this.props.cards)) {
-            return <div>Page not found!</div>;
-        }
-
-        const { currentCardIndex } = this.state;
-        console.log(this.props.cards);
-        const flashcard = this.props.cards[currentCardIndex][this.state.isFront ? 'front' : 'back'];
-
-        return (
-            <div>
-                <h2>{this.props.name}</h2>
-                <div className="flashcard-container">
-                    <div className="flashcard" onClick={this.handleCardClick}>
-                        {flashcard}
-                    </div>
-                </div> 
-                <div className="progress-bar">
-                    Card {currentCardIndex + 1}/{this.props.cards.length}
-                </div>
-                <div className="button-container">
-                    <button onClick={this.handlePrevCard} disabled={currentCardIndex === 0}>
-                        Previous Card
-                    </button>
-                    <button onClick={this.handleNextCard} disabled={currentCardIndex === this.props.cards.length - 1}>
-                        Next Card
-                    </button>
-                </div>
-                <hr />
-                <Link to="/">Home</Link>
-            </div>
-        )
+  const handlePrevCard = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setDisplayFront(true);
     }
+  };
+
+  const handleCardClick = () => setDisplayFront(!displayFront);
+
+  if (!isLoaded(cards)) {
+    return <div>Loading...</div>;
+  }
+
+  if (isEmpty(cards)) {
+    return <div>Page not found!</div>;
+  }
+
+  const flashcard = cards[currentIndex][displayFront ? 'front' : 'back'];
+
+  return (
+    <div>
+      Card {currentIndex + 1} out of {cards.length}.
+      <div className="card" onClick={handleCardClick}>
+        {flashcard}
+      </div>
+      <br />
+      <button
+        disabled={currentIndex === 0}
+        onClick={handlePrevCard}
+      >
+        Prev card
+      </button>
+      <button
+        disabled={currentIndex === cards.length - 1}
+        onClick={handleNextCard}
+      >
+        Next card
+      </button>
+      <hr />
+      <Link to="/">Home</Link>
+    </div>
+  );
 }
 
 const mapStateToProps = (state, props) => {
-    const deckId = props.deckId;
-    const deck = state.firebase.data[deckId];
-    const name = deck && deck.name;
-    const cards = deck && deck.cards;
-    return { cards: cards, name: name };
+  const deck = state.firebase.data[props.deckId];
+  const name = deck && deck.name;
+  const cards = deck && deck.cards;
+  return { cards: cards, name: name };
 };
 
-export default compose(
-    withRouter,
-    firebaseConnect(props => {
-        const deckId = props.deckId;
-        return [{ path: `/flashcards/${deckId}`, storeAs: 'deckId' }];
-    }),
-    connect(mapStateToProps),
-)(CardViewer);
+export default connect(mapStateToProps)(CardViewer);

@@ -7,14 +7,15 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { Provider } from 'react-redux';
 // import firebase from 'firebase/compat/app';
-import 'firebase/compat/database';
+import 'firebase/database';
 import { createStore, combineReducers } from 'redux';
 import {
   ReactReduxFirebaseProvider,
   firebaseReducer,
 } from 'react-redux-firebase';
-import { initializeApp } from 'firebase/app';
 // import { composeWithDevTools } from 'redux-devtools-extension';
+import { initializeApp } from 'firebase/app';
+import { getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAetyljyYei6ID0tAv7ycmZNFaRp3l9bRw",
@@ -27,6 +28,9 @@ const firebaseConfig = {
   };
 
   const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
+
+export { firebaseApp, database };
 
 // Add firebase to reducers
 const rootReducer = combineReducers({

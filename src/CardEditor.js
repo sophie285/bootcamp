@@ -96,7 +96,6 @@ class CardEditor extends React.Component {
             return set(ref(db, `homepage/${newDeckKey}`), newHomepage);
           })
         //   .then(() => {
-        //     // Handle success, e.g., navigate to the viewer
         //     this.props.history.push(`/viewer/${newDeckKey}`);
         //   })
           .catch((error) => {

@@ -1,67 +1,68 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getDatabase, ref, onValue } from 'firebase/database';
-import { firebaseConnect, isLoaded, isEmpty } from 'react-redux-firebase';
-import {connect} from 'react-redux';
+import { firebaseConnect } from 'react-redux-firebase';
+import { connect } from 'react-redux';
+import PropTypes from 'prop-types';
 import { compose } from 'redux';
+import { ref, onValue, getDatabase } from 'firebase/database';
 
 class Homepage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      homepage: null,
+      error: null
+    };
+  }
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            decks: {}, // This will hold the deck data retrieved from the database
-        };
+  componentDidMount() {
+    const db = getDatabase();
+    const homepageRef = ref(db, 'homepage'); // Adjust the path as needed
+
+    onValue(homepageRef, (snapshot) => {
+      if (snapshot.exists()) {
+        this.setState({ homepage: snapshot.val() });
+      } else {
+        this.setState({ error: 'No data available' });
+      }
+    }, (error) => {
+      console.error('Error fetching homepage data:', error);
+      this.setState({ error });
+    });
+  }
+
+  render() {
+    const { homepage, error } = this.state;
+
+    if (!homepage && !error) {
+      return <div>Loading...</div>;
+    } else if (error) {
+      return <div>Error loading data: {error}</div>;
     }
 
-    // componentDidMount() {
-    //     // Fetch the deck data from the /homepage path in the database
-    //     const db = getDatabase();
-    //     const homepageRef = ref(db, 'homepage');
+    const decks = homepage ? Object.keys(homepage).map(deckId => {
+      const deck = homepage[deckId];
+      return (
+        <div key={deckId}>
+          <Link to={`/viewer/${deckId}`}>{deck.name}</Link>
+        </div>
+      );
+    }) : <div>No decks available</div>;
 
-    //     onValue(homepageRef, (snapshot) => {
-    //         // Update the state with the retrieved deck data
-    //         this.setState({ decks: snapshot.val() || {} });
-    //     });
-    // }
-
-    render() {
-        
-        if (!isLoaded(this.props.deck)) {
-            return <div>Loading...</div>
-        } 
-        else {
-            const { decks } = this.props;
-            console.log(this.props);
-            return (
-                <div>
-                    <h2>Homepage</h2>
-                    <Link to="/editor">Create a new deck</Link>
-                    <br></br>
-                    <h3>Your Decks:</h3>
-                    <ul>
-                        {Object.keys(decks).map((deckId) => (
-                            <li key={deckId}>
-                                <Link to={`/viewer/${deckId}`} key={deckId}>
-                                    {decks[deckId].name}
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )
-        }
-        
-    }
+    return (
+      <div>
+        <h2>Homepage</h2>
+        <Link to="/editor">Create a new flashcards deck!</Link>
+        <h3>Flashcards</h3>
+        {decks}
+      </div>
+    );
+  }
 }
 
-const mapStateToProps = (state) => {
-    const decks = state.firebase.data.homepage;
-    return {decks: decks};
-}
+// PropTypes for the component
+Homepage.propTypes = {
+  firebase: PropTypes.object.isRequired
+};
 
-
-export default compose (
-    firebaseConnect([{ path: '/homepage', storeAs: 'homepage' }]),
-    connect(mapStateToProps),
-)(Homepage);
+export default compose(firebaseConnect(), connect())(Homepage);
