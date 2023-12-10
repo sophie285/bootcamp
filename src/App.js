@@ -12,9 +12,6 @@ const App = () => {
       <Route path='/' element={<Homepage />} />
       <Route path="/editor" element={<CardEditor />} />
       <Route exact path="/viewer/:deckId" element={<CardViewer />} />
-      {/* <Route>
-        <div>Page not found</div>
-      </Route> */}
     </Routes>
   );
 }

@@ -45,32 +45,6 @@ class CardEditor extends React.Component {
 
     handleChange = event => this.setState({ [event.target.name]: event.target.value });
 
-    // createDeck = async (deckName, cards) => {
-    //     const db = getDatabase();
-    //     const decksRef = ref(db, 'flashcards');
-      
-    //     const newDeckKey = push(decksRef).key;
-
-    //     const newDeckData = {
-    //         name: deckName,
-    //         cards: [],
-    //     };
-
-    //     const cardsData = {};
-    //     for (const card of cards) {
-    //         const newCardKey = push(ref(db, `flashcards/${newDeckKey}/cards`)).key;
-    //         cardsData[`flashcards/${newDeckKey}/cards/${newCardKey}`] = card;
-    //     }
-
-    //     const updates = {};
-    //     updates[`flashcards/${newDeckKey}`] = newDeckData;
-    //     Object.assign(updates, cardsData);
-
-    //     updates[`homepage/${newDeckKey}`] = deckName;
-
-    //     await set(ref(db), updates);
-    //   };
-
     createDeck = () => {
         const db = getDatabase();
         const decksRef = ref(db, 'flashcards');
