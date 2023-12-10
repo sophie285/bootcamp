@@ -64,9 +64,9 @@ function CardViewer(props) {
   const flashcard = cards[currentIndex][displayFront ? 'front' : 'back'];
 
   return (
-    <div>
+    <div class="flashcard-container">
       Card {currentIndex + 1} out of {cards.length}.
-      <div className="card" onClick={handleCardClick}>
+      <div class="flashcard" onClick={handleCardClick}>
         {flashcard}
       </div>
       <br />

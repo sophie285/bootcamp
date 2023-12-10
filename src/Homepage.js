@@ -1,4 +1,5 @@
 import React from 'react';
+import './Homepage.css';
 import { Link } from 'react-router-dom';
 import { firebaseConnect } from 'react-redux-firebase';
 import { connect } from 'react-redux';
